@@ -11,7 +11,7 @@ public class BackpressureClientApp {
 
     // This value should be high enough to cause trouble without any kind of back pressure control. Tweak it if needed
     // to get a suitable amount of trouble to begin with.
-    private static final int MESSAGE_COUNT = 300;
+    private static final int MESSAGE_COUNT = 600;
 
     // Once you have gotten everything to work with one worker, increase this to 2 and see if the program still works.
     private static final int WORKERS = 1;

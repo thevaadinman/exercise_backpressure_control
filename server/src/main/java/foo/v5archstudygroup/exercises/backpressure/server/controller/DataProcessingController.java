@@ -2,6 +2,10 @@ package foo.v5archstudygroup.exercises.backpressure.server.controller;
 
 import foo.v5archstudygroup.exercises.backpressure.messages.Messages;
 import foo.v5archstudygroup.exercises.backpressure.server.DataProcessor;
+
+import java.util.concurrent.RejectedExecutionException;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +26,11 @@ public class DataProcessingController {
 
     @PostMapping("/process")
     public ResponseEntity<Void> process(@RequestBody Messages.ProcessingRequest request) {
-        dataProcessor.enqueue(request);
+        try {
+            dataProcessor.enqueue(request);
+        } catch (RejectedExecutionException ex) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+        }
         return ResponseEntity.ok(null);
     }
 }

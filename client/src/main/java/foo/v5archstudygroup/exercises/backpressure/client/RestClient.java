@@ -2,6 +2,8 @@ package foo.v5archstudygroup.exercises.backpressure.client;
 
 import foo.v5archstudygroup.exercises.backpressure.messages.Messages;
 import foo.v5archstudygroup.exercises.backpressure.messages.converter.ProcessingRequestMessageConverter;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -28,8 +30,34 @@ public class RestClient {
         this.serverUri = serverUri;
     }
 
-    public void sendToServer(Messages.ProcessingRequest processingRequest) {
+    public void sendToServer(Messages.ProcessingRequest processingRequest) throws Exception {
         var uri = UriComponentsBuilder.fromUri(serverUri).path("/process").build().toUri();
-        restTemplate.postForEntity(uri, processingRequest, Void.class);
+        long wait = 100; // msec
+        boolean retry = true;
+
+        while (retry) {
+            try {              
+                if (restTemplate.postForEntity(uri, processingRequest, Void.class).getStatusCode().compareTo(HttpStatus.OK) != 0) {
+                    retry = false;
+                    wait = 100;
+                    return;
+                }
+            } catch (Exception ex) {
+                System.out.println("lol? " + ex.getMessage());
+            }
+
+            wait = (long)(wait * 1.5);
+
+            if (wait < 10000) {
+                try {
+                    Thread.sleep(wait);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                retry = false; // fuck this
+                throw new Exception("Failed to send to server");
+            }
+        }
     }
 }
